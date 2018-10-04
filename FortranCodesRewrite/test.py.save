@@ -1,0 +1,50 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+#importing data
+datarho = np.genfromtxt('rdata.dat',delimiter=None)
+datav = np.genfromtxt('vdata.dat',delimiter=None)
+datap = np.genfromtxt('pdata.dat',delimiter=None)
+
+#declaring data
+#X
+x = datarho[:,0]
+
+#RHO
+rho_int = datarho[:,1]
+rho = datarho[:,2]
+
+#V
+vint = datav[:,1]
+v = datav[:,2]
+
+
+#P
+pint = datap[:,1]
+p = datap[:,2]
+
+
+
+#setting windows
+manager = plt.get_current_fig_manager()
+manager.resize(*manager.window.maxsize())
+
+plt.clf()
+
+
+plt.subplot(231)
+plt.plot(x,rho_int,'-xr')
+plt.hold
+plt.plot(x,rho,'-ob')
+plt.xlabel('x')
+plt.ylabel('zy')
+
+plt.subplot(232)
+
+plt.plot(x,vint,'-xr')
+
+plt.subplot(233)
+
+
+plt.savefig('plot.png')
+

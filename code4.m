@@ -1,0 +1,10 @@
+%declare basic variables 
+gamma = 1.4;
+p4 = 2.0; 
+p1 = 1.0; 
+rho4 = 2.0; 
+rho1 = 1.0; 
+imax = 41; 
+xmin = 0; 
+xmax = 2.; 
+dx = (xmax-xmin)/(imax-1); 

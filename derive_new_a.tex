@@ -1,0 +1,31 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\begin{document}
+	\begin{align*}
+		a^2 &= \dfrac{\partial P}{\partial \rho} + \dfrac{p}{\rho ^2}\dfrac{\partial P}{\partial e} \\
+		&=(\gamma -1)e + \dfrac{P}{\rho}(\gamma -1)
+	\end{align*}
+	
+	Recall:
+	
+	\begin{equation}
+		P = (\gamma -1) \rho e - \gamma P^{\infty}
+	\end{equation}
+	
+	We get: 
+	
+	\begin{align*}
+		(\gamma -1)\rho e = P+\gamma p^{\infty}
+	\end{align*}
+	
+	Then, multiply both sides by $\rho$
+	
+	\begin{align*}
+		a^2 \rho &= (\gamma -1)\rho e + P(\gamma -1)\\
+		a^2 \rho &= (P+ \gamma P^{\infty})+P(\gamma-1)\\
+		a^2&=\dfrac{\gamma (P+P^{\infty}) }{\rho} \\
+		a&=\sqrt{\dfrac{\gamma (P+P^{\infty}) }{\rho}}
+	\end{align*}
+	
+	 
+\end{document}

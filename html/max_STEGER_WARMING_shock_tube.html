@@ -1,0 +1,806 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>max_STEGER_WARMING_shock_tube</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-11-30"><meta name="DC.source" content="max_STEGER_WARMING_shock_tube.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">INITIALIZATION</a></li><li><a href="#3">MAIN LOOP</a></li><li><a href="#4">PART 1: CALCULATE DT</a></li><li><a href="#5">PART 2: DEAL WITH U PLUS HALF</a></li><li><a href="#7">PART 3: DEAL WITH U MINUS HALF</a></li><li><a href="#8">PART 4: FINITE DIFFERENCE EQUATION</a></li><li><a href="#10">SET BC AND PLOT VARIABLES FOR NUMERICAL</a></li><li><a href="#11">PART 5: ANALYTICAL PART  (call analytical, use updated dt);</a></li><li><a href="#13">PLOTTING</a></li></ul></div><pre class="codeinput">clear <span class="string">all</span>
+clc
+clf
+</pre><img vspace="5" hspace="5" src="max_STEGER_WARMING_shock_tube_01.png" alt=""> <h2 id="2">INITIALIZATION</h2><pre class="codeinput"><span class="comment">%BASIC PARAMETERS</span>
+gamma = 1.4;
+p4 = 2.0;
+p1 = 1.0;
+rho4 = 2.0;
+rho1 = 1.0;
+imax = 41;
+xmin = 0;
+xmax = 2.;
+dx = 2/(imax-1);
+
+<span class="keyword">global</span> rho_vector
+<span class="keyword">global</span> p_vector
+<span class="keyword">global</span> velocity_vector
+<span class="keyword">global</span> dtnew
+
+
+<span class="comment">%SET UP VECTORS</span>
+
+x = 0:dx:2;
+x0 = find(x==1.0);
+
+u = zeros(1,imax);
+
+<span class="comment">%SET UP STATE VECTORS</span>
+USTATE = zeros(3,imax);
+USTATE_UPDATE = zeros(3,imax);
+
+<span class="comment">%SET UP MATRICES</span>
+
+lamda_plus_i_plus = zeros(3,3);
+lamda_minus_i_plus = zeros(3,3);
+Ca_i_plus = zeros(3,3);
+Ca_inverse_plus = zeros(3,3);
+S_i_plus = zeros(3,3);
+S_inverse_plus = zeros(3,3);
+FPLUS = zeros(3,imax);
+xplus = zeros(3,3);
+xplusinv = zeros(3,3);
+xminus= zeros(3,3);
+xminusinv= zeros(3,3);
+<span class="comment">% FPLUS = zeros(3,3);</span>
+
+
+lamda_plus_i_minus = zeros(3,3);
+lamda_minus_i_minus = zeros(3,3);
+Ca_i_minus = zeros(3,3);
+Ca_inverse_minus = zeros(3,3);
+S_i_minus = zeros(3,3);
+S_inverse_minus = zeros(3,3);
+FMINUS = zeros(3,imax);
+<span class="comment">% FMINUS = zeros(3,3);</span>
+
+
+Abarplus_plus= zeros(3,3);
+Abarminus_plus= zeros(3,3);
+
+Abarplus_minus= zeros(3,3);
+Abarminus_minus= zeros(3,3);
+
+
+<span class="comment">% INITIAL CONDITIONS</span>
+<span class="comment">% RHO</span>
+USTATE(1,1:x0) = rho4;
+USTATE(1,x0:imax) = rho1;
+
+<span class="comment">% FOR E</span>
+USTATE(3,1:x0) = p4/(gamma-1);
+USTATE(3,x0:imax) = p1/(gamma-1);
+
+USTATE_UPDATE = USTATE;
+
+timestep = 0;
+maxtimestep = 18;
+</pre><h2 id="3">MAIN LOOP</h2><pre class="codeinput"><span class="keyword">while</span> timestep &lt;maxtimestep
+</pre><h2 id="4">PART 1: CALCULATE DT</h2><pre class="codeinput">  <span class="keyword">for</span> i = 1:imax
+     u_at_i = USTATE_UPDATE(2,:)./USTATE_UPDATE(1,:); <span class="comment">%%rho u by rho</span>
+     rho_at_i = USTATE_UPDATE(1,:);
+     e_at_i = USTATE_UPDATE(3,:);
+     p_at_i = (e_at_i-0.5.*rho_at_i.*u_at_i.^2);
+     a_at_i = sqrt(gamma*p_at_i./rho_at_i);
+     abs_u_plus_a_at_i= abs(u_at_i+a_at_i);
+     dt_at_i = dx./abs_u_plus_a_at_i;<span class="comment">%this is an array of dt at i</span>
+     dt_smallest = min(dt_at_i); <span class="comment">%smallest dt in dt array at i</span>
+     real_dt = 0.9*dt_smallest;
+
+
+
+  <span class="keyword">end</span>
+
+  dt = real_dt;
+</pre><h2 id="5">PART 2: DEAL WITH U PLUS HALF</h2><pre class="codeinput">   <span class="keyword">for</span> i = 2:imax-1
+</pre><pre class="codeinput">    USTATE_PLUS(:,:) = 0.5*(USTATE(:,i)+USTATE(:,i+1));
+
+
+    rho_plus = USTATE_PLUS(1,:);
+
+    u_plus = USTATE_PLUS(2,:)./USTATE_PLUS(1,:);
+
+    p_plus = (USTATE_PLUS(3,:).*(gamma-1)) - (0.5).*(gamma-1).*rho_plus.*u_plus^2;
+
+    a_plus = sqrt(gamma.*p_plus./rho_plus);
+
+    <span class="comment">%FORM LAMBDA PLUS AND MINUS FOR I PLUS HALF</span>
+    lamda1plus = u_plus;
+    lamda2plus = u_plus+a_plus;
+    lamda3plus = u_plus-a_plus;
+
+    lamda1plus_plus = 0.5*(lamda1plus+abs(lamda1plus));
+    lamda2plus_plus = 0.5*(lamda2plus+abs(lamda2plus));
+    lamda3plus_plus = 0.5*(lamda3plus+abs(lamda3plus));
+
+    lamda1minus_plus = 0.5*(lamda1plus-abs(lamda1plus));
+    lamda2minus_plus = 0.5*(lamda2plus-abs(lamda2plus));
+    lamda3minus_plus = 0.5*(lamda3plus-abs(lamda3plus));
+
+    <span class="comment">%LAMDA PLUS FOR I PLUS HALF</span>
+    lamda_plus_i_plus(1,1) = lamda1plus_plus;
+    lamda_plus_i_plus(2,2) = lamda2plus_plus;
+    lamda_plus_i_plus(3,3) = lamda3plus_plus;
+
+
+    <span class="comment">%LAMDA PLUS FOR I MINUS HALF</span>
+    lamda_minus_i_plus(1,1) = lamda1minus_plus;
+    lamda_minus_i_plus(2,2) = lamda2minus_plus;
+    lamda_minus_i_plus(3,3) = lamda3minus_plus;
+
+
+
+    <span class="comment">%FORMING Ca, S for I PLUS HALF</span>
+    <span class="comment">%Form Ca plus</span>
+    Ca_i_plus(1,1) = 1.0;
+    Ca_i_plus(1,2) = 0.0;
+
+    Ca_i_plus(1,3) = -1./(a_plus.^2);
+    Ca_i_plus(2,1) = 0.0;
+    Ca_i_plus(2,2) = rho_plus.*a_plus;
+    Ca_i_plus(2,3) = 1.0;
+
+    Ca_i_plus(3,1) = 0.0;
+    Ca_i_plus(3,2) = -rho_plus.*a_plus;
+    Ca_i_plus(3,3) = 1.0;
+
+
+
+    <span class="comment">%Form S plus</span>
+    beta = gamma-1;
+    alpha_plus = (u_plus.^2)./2;
+    S_i_plus(1,1) = 1.0;
+    S_i_plus(1,2) = 0.0;
+    S_i_plus(1,3) = 0.0;
+    S_i_plus(2,1) = -u_plus./rho_plus;
+    S_i_plus(2,2) = 1.0./rho_plus;
+    S_i_plus(2,3) = 0.0;
+    S_i_plus(3,1) = alpha_plus.*beta;
+    S_i_plus(3,2) = -u_plus.*beta;
+    S_i_plus(3,3) = beta;
+
+
+    <span class="comment">%Form Ca inverse plus</span>
+
+    Ca_inverse_plus(1,1) = 1.0;
+    Ca_inverse_plus(1,2) = 1.0./(2.*a_plus.^2);
+    Ca_inverse_plus(1,3) = 1.0./(2.*a_plus.^2);
+
+    Ca_inverse_plus(2,1) = 0.0;
+
+    Ca_inverse_plus(2,2) = 1.0./(2.*rho_plus.*a_plus);
+    Ca_inverse_plus(2,3) = -1.0./(2.*rho_plus.*a_plus);
+
+    Ca_inverse_plus(3,1) = 0.0;
+    Ca_inverse_plus(3,2) = 0.5;
+    Ca_inverse_plus(3,3) = 0.5;
+
+
+
+    <span class="comment">%Form S inverse plus</span>
+
+
+    S_inverse_plus(1,1) = 1.0;
+    S_inverse_plus(1,2) = 0.0;
+    S_inverse_plus(1,3) = 0.0;
+    S_inverse_plus(2,1) = u_plus;
+    S_inverse_plus(2,2) = rho_plus;
+    S_inverse_plus(2,3) = 0.0;
+    S_inverse_plus(3,1) = alpha_plus;
+    S_inverse_plus(3,2) = rho_plus.*u_plus;
+    S_inverse_plus(3,3) = 1.0./beta;
+
+
+
+
+
+
+
+
+
+    Abarplus_plus(:,:) = S_inverse_plus(:,:)*Ca_inverse_plus(:,:)*lamda_plus_i_plus(:,:)*Ca_i_plus(:,:)*S_i_plus(:,:);
+
+    Abarminus_plus(:,:) = S_inverse_plus(:,:)*Ca_inverse_plus(:,:)*lamda_minus_i_plus(:,:)*Ca_i_plus(:,:)*S_i_plus(:,:);
+
+
+    FPLUS(:,i) = Abarplus_plus(:,:)*USTATE(:,i)+Abarminus_plus(:,:)*USTATE(:,i+1);
+</pre><h2 id="7">PART 3: DEAL WITH U MINUS HALF</h2><pre class="codeinput">    USTATE_MINUS(:,:) = 0.5*(USTATE(:,i)+USTATE(:,i-1));
+
+    <span class="comment">%PULL RHO, P, AT MINUS HALF</span>
+
+    rho_minus = USTATE_MINUS(1,:);
+    u_minus = USTATE_MINUS(2,:)./USTATE_MINUS(1,:);
+    p_minus = (USTATE_MINUS(3,:).*(gamma-1)) - (0.5)*(gamma-1)*rho_minus.*u_minus.^2;
+
+    a_minus = sqrt(gamma*p_minus/rho_minus);
+
+    <span class="comment">%FORM LAMBDA PLUS AND MINUS FOR I MINUS HALF</span>
+    lamda1minus = u_minus;
+    lamda2minus = u_minus+a_minus;
+    lamda3minus = u_minus-a_minus;
+
+    lamda1plus_minus = 0.5*(lamda1minus+abs(lamda1minus));
+    lamda2plus_minus = 0.5*(lamda2minus+abs(lamda2minus));
+    lamda3plus_minus = 0.5*(lamda3minus+abs(lamda3minus));
+
+    lamda1minus_minus = 0.5*(lamda1minus-abs(lamda1minus));
+    lamda2minus_minus = 0.5*(lamda2minus-abs(lamda2minus));
+    lamda3minus_minus = 0.5*(lamda3minus-abs(lamda3minus));
+
+    <span class="comment">%LAMDA PLUS FOR I MINUS HALF</span>
+    lamda_plus_i_minus(1,1) = lamda1plus_minus;
+    lamda_plus_i_minus(2,2) = lamda2plus_minus;
+    lamda_plus_i_minus(3,3) = lamda3plus_minus;
+
+    <span class="comment">%LAMDA MINUS FOR I MINUS HALF</span>
+    lamda_minus_i_minus(1,1) = lamda1minus_minus;
+    lamda_minus_i_minus(2,2) = lamda2minus_minus;
+    lamda_minus_i_minus(3,3) = lamda3minus_minus;
+
+
+
+    <span class="comment">%FORMING Ca, S for I MINUS HALF</span>
+    <span class="comment">%Form Ca minus</span>
+    Ca_i_minus(1,1) = 1.0;
+    Ca_i_minus(1,3) = -1./(a_minus.^2);
+    Ca_i_minus(2,2) = rho_minus.*a_minus;
+    Ca_i_minus(2,3) = 1.0;
+    Ca_i_minus(3,2) = -rho_minus.*a_minus;
+    Ca_i_minus(3,3) = 1.0;
+    <span class="comment">%Form S minus</span>
+    beta = gamma-1;
+    alpha_minus = (u_minus.^2)./2;
+    S_i_minus(1,1) = 1.0;
+    S_i_minus(2,1) = -u_minus./rho_minus;
+    S_i_minus(2,2) = 1.0./rho_minus;
+    S_i_minus(3,1) = alpha_minus.*beta;
+    S_i_minus(3,2) = -u_minus.*beta;
+    S_i_minus(3,3) = beta;
+
+    <span class="comment">%Form Ca inverse minus</span>
+
+    Ca_inverse_minus(1,1) = 1.0;
+    Ca_inverse_minus(1,2) = 1.0./(2.*a_minus.^2);
+    Ca_inverse_minus(1,3) = 1.0./(2.*a_minus.^2);
+    Ca_inverse_minus(2,2) = 1.0./(2.*rho_minus.*a_minus);
+    Ca_inverse_minus(2,3) = -1.0./(2.*rho_minus.*a_minus);
+    Ca_inverse_minus(3,2) = 0.5;
+    Ca_inverse_minus(3,3) = 0.5;
+
+    <span class="comment">%Form S inverse minus</span>
+
+
+    S_inverse_minus(1,1) = 1.0;
+    S_inverse_minus(2,1) = u_minus;
+    S_inverse_minus(2,2) = rho_minus;
+    S_inverse_minus(3,1) = alpha_minus;
+    S_inverse_minus(3,2) = rho_minus.*u_minus;
+    S_inverse_minus(3,3) = 1.0./beta;
+
+
+
+    Abarplus_minus(:,:) = S_inverse_minus(:,:)*Ca_inverse_minus(:,:)*lamda_plus_i_minus(:,:)*Ca_i_minus(:,:)*S_i_minus(:,:);
+
+    Abarminus_minus(:,:) = S_inverse_minus(:,:)*Ca_inverse_minus(:,:)*lamda_minus_i_minus(:,:)*Ca_i_minus(:,:)*S_i_minus(:,:);
+
+    FMINUS(:,i) = Abarplus_minus(:,:)*USTATE(:,i-1)+Abarminus_minus(:,:)*USTATE(:,i);
+</pre><img vspace="5" hspace="5" src="max_STEGER_WARMING_shock_tube_02.png" alt=""> <h2 id="8">PART 4: FINITE DIFFERENCE EQUATION</h2><pre class="codeinput">    USTATE_UPDATE(:,i) = USTATE(:,i) - (dt/dx)*(FPLUS(:,i)-FMINUS(:,i));
+</pre><pre class="codeinput">    <span class="keyword">end</span>
+</pre><h2 id="10">SET BC AND PLOT VARIABLES FOR NUMERICAL</h2><pre class="codeinput">  USTATE_UPDATE(:,imax) = USTATE_UPDATE(:,imax-1);
+  USTATE = USTATE_UPDATE;
+  ENERGY = USTATE_UPDATE(3,:);
+  RHO = USTATE_UPDATE(1,:);
+
+  VELOCITY = USTATE_UPDATE(2,:)./RHO;
+  PRESSURE = ((gamma-1)*ENERGY-(gamma-1)*0.5.*(((USTATE_UPDATE(2,:)).^2)./(RHO)));
+
+
+  <span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+</pre><h2 id="11">PART 5: ANALYTICAL PART  (call analytical, use updated dt);</h2><pre class="codeinput">  max_ANALYTICAL_shock_tube(dt);
+  timestep = timestep+1;
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><h2 id="13">PLOTTING</h2><pre class="codeinput">  figure(1)
+  plot(x,PRESSURE);
+  ylim([0.5 2]);
+  hold <span class="string">on</span>
+  grid <span class="string">on</span>
+  plot(x,p_vector);
+  legend({<span class="string">'Steger Warming'</span>,<span class="string">'Analytical'</span>},<span class="string">'FontSize'</span>,14);
+  xlabel(<span class="string">'X'</span>,<span class="string">'FontSize'</span>,18);
+  title(<span class="string">'X vs PRESSURE'</span>,<span class="string">'FontSize'</span>,18);
+  ylabel(<span class="string">'PRESSURE'</span>,<span class="string">'FontSize'</span>,18);
+  xt = get(gca, <span class="string">'XTick'</span>);
+  set(gca, <span class="string">'FontSize'</span>, 16)
+
+  figure(2)
+  plot(x,RHO);
+  ylim([0.5 2]);
+  hold <span class="string">on</span>
+  grid <span class="string">on</span>
+  plot(x,rho_vector);
+  legend({<span class="string">'Steger Warming'</span>,<span class="string">'Analytical'</span>},<span class="string">'FontSize'</span>,14);
+  xlabel(<span class="string">'X'</span>,<span class="string">'FontSize'</span>,18);
+  title(<span class="string">'X vs DENSITY'</span>,<span class="string">'FontSize'</span>,18)
+  ylabel(<span class="string">'DENSITY'</span>,<span class="string">'FontSize'</span>,18);
+  xt = get(gca, <span class="string">'XTick'</span>);
+  set(gca, <span class="string">'FontSize'</span>, 16);
+
+
+  figure(3)
+  plot(x,VELOCITY);
+  hold <span class="string">on</span>
+  grid <span class="string">on</span>
+  plot(x,velocity_vector);
+  legend({<span class="string">'Steger Warming'</span>,<span class="string">'Analytical'</span>},<span class="string">'FontSize'</span>,14);
+  xlabel(<span class="string">'X'</span>,<span class="string">'FontSize'</span>,18);
+  ylabel(<span class="string">'VELOCITY'</span>,<span class="string">'FontSize'</span>,18);
+  title(<span class="string">'X vs VELOCITY'</span>,<span class="string">'FontSize'</span>,18)
+  xt = get(gca, <span class="string">'XTick'</span>);
+  set(gca, <span class="string">'FontSize'</span>, 16)
+</pre><img vspace="5" hspace="5" src="max_STEGER_WARMING_shock_tube_03.png" alt=""> <img vspace="5" hspace="5" src="max_STEGER_WARMING_shock_tube_04.png" alt=""> <img vspace="5" hspace="5" src="max_STEGER_WARMING_shock_tube_05.png" alt=""> <img vspace="5" hspace="5" src="max_STEGER_WARMING_shock_tube_06.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+clear all
+clc
+clf
+%% INITIALIZATION 
+%BASIC PARAMETERS
+gamma = 1.4;
+p4 = 2.0; 
+p1 = 1.0; 
+rho4 = 2.0; 
+rho1 = 1.0; 
+imax = 41; 
+xmin = 0; 
+xmax = 2.; 
+dx = 2/(imax-1); 
+
+global rho_vector
+global p_vector
+global velocity_vector
+global dtnew
+
+
+%SET UP VECTORS
+
+x = 0:dx:2;
+x0 = find(x==1.0);
+
+u = zeros(1,imax);
+
+%SET UP STATE VECTORS
+USTATE = zeros(3,imax);
+USTATE_UPDATE = zeros(3,imax);
+
+%SET UP MATRICES 
+
+lamda_plus_i_plus = zeros(3,3);
+lamda_minus_i_plus = zeros(3,3);
+Ca_i_plus = zeros(3,3);
+Ca_inverse_plus = zeros(3,3);
+S_i_plus = zeros(3,3);
+S_inverse_plus = zeros(3,3);
+FPLUS = zeros(3,imax);
+xplus = zeros(3,3);
+xplusinv = zeros(3,3);
+xminus= zeros(3,3);
+xminusinv= zeros(3,3);
+% FPLUS = zeros(3,3);
+
+
+lamda_plus_i_minus = zeros(3,3);
+lamda_minus_i_minus = zeros(3,3);
+Ca_i_minus = zeros(3,3);
+Ca_inverse_minus = zeros(3,3);
+S_i_minus = zeros(3,3);
+S_inverse_minus = zeros(3,3);
+FMINUS = zeros(3,imax);
+% FMINUS = zeros(3,3);
+
+
+Abarplus_plus= zeros(3,3);
+Abarminus_plus= zeros(3,3);
+
+Abarplus_minus= zeros(3,3);
+Abarminus_minus= zeros(3,3);
+
+
+% INITIAL CONDITIONS
+% RHO
+USTATE(1,1:x0) = rho4;
+USTATE(1,x0:imax) = rho1;
+
+% FOR E 
+USTATE(3,1:x0) = p4/(gamma-1);
+USTATE(3,x0:imax) = p1/(gamma-1);
+
+USTATE_UPDATE = USTATE; 
+
+timestep = 0;
+maxtimestep = 18;
+
+
+
+
+
+%% MAIN LOOP
+while timestep <maxtimestep
+  %% PART 1: CALCULATE DT 
+  
+  for i = 1:imax
+     u_at_i = USTATE_UPDATE(2,:)./USTATE_UPDATE(1,:); %%rho u by rho 
+     rho_at_i = USTATE_UPDATE(1,:);
+     e_at_i = USTATE_UPDATE(3,:);
+     p_at_i = (e_at_i-0.5.*rho_at_i.*u_at_i.^2);
+     a_at_i = sqrt(gamma*p_at_i./rho_at_i);
+     abs_u_plus_a_at_i= abs(u_at_i+a_at_i);
+     dt_at_i = dx./abs_u_plus_a_at_i;%this is an array of dt at i
+     dt_smallest = min(dt_at_i); %smallest dt in dt array at i
+     real_dt = 0.9*dt_smallest;
+     
+    
+    
+  end
+  
+  dt = real_dt;
+  
+   %% PART 2: DEAL WITH U PLUS HALF
+   for i = 2:imax-1
+    USTATE_PLUS(:,:) = 0.5*(USTATE(:,i)+USTATE(:,i+1));
+    
+    
+    rho_plus = USTATE_PLUS(1,:);   
+   
+    u_plus = USTATE_PLUS(2,:)./USTATE_PLUS(1,:);
+    
+    p_plus = (USTATE_PLUS(3,:).*(gamma-1)) - (0.5).*(gamma-1).*rho_plus.*u_plus^2;    
+  
+    a_plus = sqrt(gamma.*p_plus./rho_plus);
+    
+    %FORM LAMBDA PLUS AND MINUS FOR I PLUS HALF 
+    lamda1plus = u_plus;
+    lamda2plus = u_plus+a_plus;
+    lamda3plus = u_plus-a_plus;
+    
+    lamda1plus_plus = 0.5*(lamda1plus+abs(lamda1plus));
+    lamda2plus_plus = 0.5*(lamda2plus+abs(lamda2plus));
+    lamda3plus_plus = 0.5*(lamda3plus+abs(lamda3plus));
+    
+    lamda1minus_plus = 0.5*(lamda1plus-abs(lamda1plus));
+    lamda2minus_plus = 0.5*(lamda2plus-abs(lamda2plus));
+    lamda3minus_plus = 0.5*(lamda3plus-abs(lamda3plus));
+    
+    %LAMDA PLUS FOR I PLUS HALF 
+    lamda_plus_i_plus(1,1) = lamda1plus_plus;
+    lamda_plus_i_plus(2,2) = lamda2plus_plus;
+    lamda_plus_i_plus(3,3) = lamda3plus_plus;
+
+    
+    %LAMDA PLUS FOR I MINUS HALF 
+    lamda_minus_i_plus(1,1) = lamda1minus_plus;
+    lamda_minus_i_plus(2,2) = lamda2minus_plus;
+    lamda_minus_i_plus(3,3) = lamda3minus_plus;
+    
+    
+    
+    %FORMING Ca, S for I PLUS HALF 
+    %Form Ca plus
+    Ca_i_plus(1,1) = 1.0;
+    Ca_i_plus(1,2) = 0.0;
+    
+    Ca_i_plus(1,3) = -1./(a_plus.^2);
+    Ca_i_plus(2,1) = 0.0;
+    Ca_i_plus(2,2) = rho_plus.*a_plus;
+    Ca_i_plus(2,3) = 1.0;
+    
+    Ca_i_plus(3,1) = 0.0;
+    Ca_i_plus(3,2) = -rho_plus.*a_plus;
+    Ca_i_plus(3,3) = 1.0;
+    
+    
+      
+    %Form S plus     
+    beta = gamma-1;
+    alpha_plus = (u_plus.^2)./2;
+    S_i_plus(1,1) = 1.0;
+    S_i_plus(1,2) = 0.0;
+    S_i_plus(1,3) = 0.0;
+    S_i_plus(2,1) = -u_plus./rho_plus;
+    S_i_plus(2,2) = 1.0./rho_plus;
+    S_i_plus(2,3) = 0.0;
+    S_i_plus(3,1) = alpha_plus.*beta;
+    S_i_plus(3,2) = -u_plus.*beta;
+    S_i_plus(3,3) = beta;
+    
+    
+    %Form Ca inverse plus 
+    
+    Ca_inverse_plus(1,1) = 1.0;
+    Ca_inverse_plus(1,2) = 1.0./(2.*a_plus.^2);
+    Ca_inverse_plus(1,3) = 1.0./(2.*a_plus.^2);
+    
+    Ca_inverse_plus(2,1) = 0.0;
+    
+    Ca_inverse_plus(2,2) = 1.0./(2.*rho_plus.*a_plus);
+    Ca_inverse_plus(2,3) = -1.0./(2.*rho_plus.*a_plus);
+    
+    Ca_inverse_plus(3,1) = 0.0;
+    Ca_inverse_plus(3,2) = 0.5;
+    Ca_inverse_plus(3,3) = 0.5;
+
+
+    
+    %Form S inverse plus 
+    
+    
+    S_inverse_plus(1,1) = 1.0;
+    S_inverse_plus(1,2) = 0.0;
+    S_inverse_plus(1,3) = 0.0;
+    S_inverse_plus(2,1) = u_plus;
+    S_inverse_plus(2,2) = rho_plus;
+    S_inverse_plus(2,3) = 0.0;
+    S_inverse_plus(3,1) = alpha_plus;
+    S_inverse_plus(3,2) = rho_plus.*u_plus;
+    S_inverse_plus(3,3) = 1.0./beta;
+    
+    
+    
+  
+
+    
+    
+  
+   
+    Abarplus_plus(:,:) = S_inverse_plus(:,:)*Ca_inverse_plus(:,:)*lamda_plus_i_plus(:,:)*Ca_i_plus(:,:)*S_i_plus(:,:);
+
+    Abarminus_plus(:,:) = S_inverse_plus(:,:)*Ca_inverse_plus(:,:)*lamda_minus_i_plus(:,:)*Ca_i_plus(:,:)*S_i_plus(:,:);
+
+    
+    FPLUS(:,i) = Abarplus_plus(:,:)*USTATE(:,i)+Abarminus_plus(:,:)*USTATE(:,i+1);
+
+    
+    
+    
+    
+    %% PART 3: DEAL WITH U MINUS HALF
+    
+    
+    USTATE_MINUS(:,:) = 0.5*(USTATE(:,i)+USTATE(:,i-1));
+    
+    %PULL RHO, P, AT MINUS HALF
+    
+    rho_minus = USTATE_MINUS(1,:);
+    u_minus = USTATE_MINUS(2,:)./USTATE_MINUS(1,:);
+    p_minus = (USTATE_MINUS(3,:).*(gamma-1)) - (0.5)*(gamma-1)*rho_minus.*u_minus.^2;    
+
+    a_minus = sqrt(gamma*p_minus/rho_minus);
+    
+    %FORM LAMBDA PLUS AND MINUS FOR I MINUS HALF 
+    lamda1minus = u_minus;
+    lamda2minus = u_minus+a_minus;
+    lamda3minus = u_minus-a_minus;
+    
+    lamda1plus_minus = 0.5*(lamda1minus+abs(lamda1minus));
+    lamda2plus_minus = 0.5*(lamda2minus+abs(lamda2minus));
+    lamda3plus_minus = 0.5*(lamda3minus+abs(lamda3minus));
+    
+    lamda1minus_minus = 0.5*(lamda1minus-abs(lamda1minus));
+    lamda2minus_minus = 0.5*(lamda2minus-abs(lamda2minus));
+    lamda3minus_minus = 0.5*(lamda3minus-abs(lamda3minus));
+    
+    %LAMDA PLUS FOR I MINUS HALF 
+    lamda_plus_i_minus(1,1) = lamda1plus_minus;
+    lamda_plus_i_minus(2,2) = lamda2plus_minus;
+    lamda_plus_i_minus(3,3) = lamda3plus_minus;
+    
+    %LAMDA MINUS FOR I MINUS HALF 
+    lamda_minus_i_minus(1,1) = lamda1minus_minus;
+    lamda_minus_i_minus(2,2) = lamda2minus_minus;
+    lamda_minus_i_minus(3,3) = lamda3minus_minus;
+    
+    
+    
+    %FORMING Ca, S for I MINUS HALF 
+    %Form Ca minus
+    Ca_i_minus(1,1) = 1.0;
+    Ca_i_minus(1,3) = -1./(a_minus.^2);
+    Ca_i_minus(2,2) = rho_minus.*a_minus;
+    Ca_i_minus(2,3) = 1.0;
+    Ca_i_minus(3,2) = -rho_minus.*a_minus;
+    Ca_i_minus(3,3) = 1.0;
+    %Form S minus     
+    beta = gamma-1;
+    alpha_minus = (u_minus.^2)./2;
+    S_i_minus(1,1) = 1.0;
+    S_i_minus(2,1) = -u_minus./rho_minus;
+    S_i_minus(2,2) = 1.0./rho_minus;
+    S_i_minus(3,1) = alpha_minus.*beta;
+    S_i_minus(3,2) = -u_minus.*beta;
+    S_i_minus(3,3) = beta;
+    
+    %Form Ca inverse minus 
+    
+    Ca_inverse_minus(1,1) = 1.0;
+    Ca_inverse_minus(1,2) = 1.0./(2.*a_minus.^2);
+    Ca_inverse_minus(1,3) = 1.0./(2.*a_minus.^2);
+    Ca_inverse_minus(2,2) = 1.0./(2.*rho_minus.*a_minus);
+    Ca_inverse_minus(2,3) = -1.0./(2.*rho_minus.*a_minus);
+    Ca_inverse_minus(3,2) = 0.5;
+    Ca_inverse_minus(3,3) = 0.5;
+    
+    %Form S inverse minus 
+    
+    
+    S_inverse_minus(1,1) = 1.0;
+    S_inverse_minus(2,1) = u_minus;
+    S_inverse_minus(2,2) = rho_minus;
+    S_inverse_minus(3,1) = alpha_minus;
+    S_inverse_minus(3,2) = rho_minus.*u_minus;
+    S_inverse_minus(3,3) = 1.0./beta;    
+    
+    
+    
+    Abarplus_minus(:,:) = S_inverse_minus(:,:)*Ca_inverse_minus(:,:)*lamda_plus_i_minus(:,:)*Ca_i_minus(:,:)*S_i_minus(:,:);
+
+    Abarminus_minus(:,:) = S_inverse_minus(:,:)*Ca_inverse_minus(:,:)*lamda_minus_i_minus(:,:)*Ca_i_minus(:,:)*S_i_minus(:,:);
+    
+    FMINUS(:,i) = Abarplus_minus(:,:)*USTATE(:,i-1)+Abarminus_minus(:,:)*USTATE(:,i);
+    
+    %% PART 4: FINITE DIFFERENCE EQUATION
+    
+    USTATE_UPDATE(:,i) = USTATE(:,i) - (dt/dx)*(FPLUS(:,i)-FMINUS(:,i)); 
+    
+
+     
+    end
+   
+  
+  
+  %% SET BC AND PLOT VARIABLES FOR NUMERICAL 
+
+  
+  USTATE_UPDATE(:,imax) = USTATE_UPDATE(:,imax-1);
+  USTATE = USTATE_UPDATE; 
+  ENERGY = USTATE_UPDATE(3,:); 
+  RHO = USTATE_UPDATE(1,:);
+  
+  VELOCITY = USTATE_UPDATE(2,:)./RHO;
+  PRESSURE = ((gamma-1)*ENERGY-(gamma-1)*0.5.*(((USTATE_UPDATE(2,:)).^2)./(RHO)));
+  
+  
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %% PART 5: ANALYTICAL PART  (call analytical, use updated dt);
+  
+  max_ANALYTICAL_shock_tube(dt);
+  timestep = timestep+1;
+
+end 
+
+  
+  
+  
+  
+  
+  
+%% PLOTTING 
+  figure(1)
+  plot(x,PRESSURE);
+  ylim([0.5 2]);
+  hold on
+  grid on
+  plot(x,p_vector);
+  legend({'Steger Warming','Analytical'},'FontSize',14);
+  xlabel('X','FontSize',18);
+  title('X vs PRESSURE','FontSize',18);
+  ylabel('PRESSURE','FontSize',18); 
+  xt = get(gca, 'XTick');
+  set(gca, 'FontSize', 16)
+  
+  figure(2)  
+  plot(x,RHO);
+  ylim([0.5 2]);
+  hold on
+  grid on
+  plot(x,rho_vector);
+  legend({'Steger Warming','Analytical'},'FontSize',14);
+  xlabel('X','FontSize',18);
+  title('X vs DENSITY','FontSize',18)
+  ylabel('DENSITY','FontSize',18);
+  xt = get(gca, 'XTick');
+  set(gca, 'FontSize', 16);
+  
+  
+  figure(3) 
+  plot(x,VELOCITY);
+  hold on
+  grid on
+  plot(x,velocity_vector);
+  legend({'Steger Warming','Analytical'},'FontSize',14);
+  xlabel('X','FontSize',18);
+  ylabel('VELOCITY','FontSize',18);
+  title('X vs VELOCITY','FontSize',18)
+  xt = get(gca, 'XTick');
+  set(gca, 'FontSize', 16)
+  
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
